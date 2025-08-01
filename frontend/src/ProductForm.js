@@ -13,6 +13,26 @@ import ImageUpload from './ImageUpload';
 
 function ProductForm({ product, onSave, onCancel }) {
   const isEdit = !!product.id;
+  // 材料比重動態編輯，材料名稱自動帶入
+  const parseRatio = (str) => {
+    if (!str) return [];
+    return str
+      .split(';')
+      .map((m) => {
+        const [name, ratio] = m.split(':');
+        return name && ratio
+          ? { name: name.trim(), ratio: ratio.replace('%', '').trim() }
+          : null;
+      })
+      .filter(Boolean);
+  };
+  const parseMaterials = (str) => {
+    if (!str) return [];
+    return str
+      .split(/\n|,/)
+      .map((m) => m.trim())
+      .filter(Boolean);
+  };
   const [form, setForm] = useState({
     name_en: product.name_en || '',
     name_zh: product.name_zh || '',
@@ -21,6 +41,17 @@ function ProductForm({ product, onSave, onCancel }) {
     price: product.price || '',
     image_url: product.image_url || '',
   });
+  // 初始化比重欄位：有比重資料則用比重，否則自動帶入材料名稱
+  const initialRatios = (() => {
+    const ratioList = parseRatio(product.materials_ratio);
+    if (ratioList.length > 0) return ratioList;
+    // 以材料(中)為主，若無則用材料(英)
+    const mats =
+      parseMaterials(product.materials_zh) ||
+      parseMaterials(product.materials_en);
+    return mats.map((name) => ({ name, ratio: '' }));
+  })();
+  const [ratios, setRatios] = useState(initialRatios);
   const [uploading, setUploading] = useState(false);
 
   const handleChange = (e) => {
@@ -44,7 +75,12 @@ function ProductForm({ product, onSave, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name_en && !form.name_zh) return;
-    onSave({ ...product, ...form }, isEdit);
+    // 組合材料比重
+    const materials_ratio = ratios
+      .filter((r) => r.name && r.ratio)
+      .map((r) => `${r.name}:${r.ratio}%`)
+      .join(';');
+    onSave({ ...product, ...form, materials_ratio }, isEdit);
   };
 
   return (
@@ -100,6 +136,53 @@ function ProductForm({ product, onSave, onCancel }) {
               ),
             }}
           />
+          <Box sx={{ mt: 2, mb: 1 }}>
+            <b>材料比重</b>
+            {ratios.map((r, idx) => (
+              <Box key={idx} sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <TextField
+                  label="材料名稱"
+                  value={r.name}
+                  size="small"
+                  onChange={(e) => {
+                    const newRatios = [...ratios];
+                    newRatios[idx].name = e.target.value;
+                    setRatios(newRatios);
+                  }}
+                  sx={{ width: 160 }}
+                />
+                <TextField
+                  label="比重%"
+                  value={r.ratio}
+                  size="small"
+                  type="number"
+                  onChange={(e) => {
+                    const newRatios = [...ratios];
+                    newRatios[idx].ratio = e.target.value;
+                    setRatios(newRatios);
+                  }}
+                  sx={{ width: 80 }}
+                  inputProps={{ min: 0, max: 100 }}
+                />
+                <Button
+                  color="error"
+                  onClick={() => {
+                    setRatios(ratios.filter((_, i) => i !== idx));
+                  }}
+                >
+                  移除
+                </Button>
+              </Box>
+            ))}
+            <Button
+              variant="outlined"
+              size="small"
+              sx={{ mt: 1 }}
+              onClick={() => setRatios([...ratios, { name: '', ratio: '' }])}
+            >
+              新增材料
+            </Button>
+          </Box>
           <Box sx={{ mt: 2 }}>
             <ImageUpload
               imageUrl={form.image_url}

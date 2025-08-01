@@ -16,10 +16,45 @@ import SalesList from './SalesList';
 import InventoryList from './InventoryList';
 import SalesForm from './SalesForm';
 import InventoryForm from './InventoryForm';
+import ProductCatalog from './ProductCatalog';
 
 function App() {
   // 分頁狀態: 'products' | 'sales' | 'inventory'
+  // 分頁狀態: 'products' | 'sales' | 'inventory' | 'catalog'
   const [page, setPage] = useReactState('products');
+  // 型錄購買功能
+  const handlePurchase = async ({ product_id, quantity }) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sales`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id,
+          quantity,
+          date: new Date().toISOString().slice(0, 10),
+          customer: '消費者',
+          price: products.find((p) => p.id === product_id)?.price || 0,
+          status: '待處理',
+          package_cost: 0,
+          shipping_cost: 0,
+          maker: '',
+          ratio: '',
+        }),
+      });
+      if (res.ok) {
+        setSnackbar({
+          open: true,
+          message: '已加入購買清單',
+          severity: 'success',
+        });
+        fetchSales();
+      } else {
+        setSnackbar({ open: true, message: '送出失敗', severity: 'error' });
+      }
+    } catch (err) {
+      setSnackbar({ open: true, message: '送出失敗', severity: 'error' });
+    }
+  };
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -179,7 +214,7 @@ function App() {
 
   // 新增或編輯產品
   const handleSave = async (product, isEdit) => {
-    // 欄位同步：name_en, name_zh, materials_en, materials_zh, price, image_url
+    // 欄位同步：name_en, name_zh, materials_en, materials_zh, price, image_url, materials_ratio
     const payload = {
       name_en: product.name_en || '',
       name_zh: product.name_zh || '',
@@ -187,6 +222,7 @@ function App() {
       materials_zh: product.materials_zh || '',
       price: product.price || '',
       image_url: product.image_url || '',
+      materials_ratio: product.materials_ratio || '',
     };
     try {
       const res = await fetch(
@@ -234,7 +270,7 @@ function App() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth={false} sx={{ py: 4, maxWidth: 1300, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom align="center">
         寶可夢 3D 列印球產品管理
       </Typography>
@@ -258,7 +294,17 @@ function App() {
         >
           庫存管理
         </Button>
+        <Button
+          variant={page === 'catalog' ? 'contained' : 'outlined'}
+          onClick={() => setPage('catalog')}
+        >
+          寶可夢球型錄
+        </Button>
       </Box>
+      {/* 型錄分頁 */}
+      {page === 'catalog' && (
+        <ProductCatalog products={products} onPurchase={handlePurchase} />
+      )}
 
       {/* 產品管理頁 */}
       {page === 'products' && (
