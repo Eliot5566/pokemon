@@ -274,116 +274,128 @@ function App() {
       <Typography variant="h4" gutterBottom align="center">
         寶可夢 3D 列印球產品管理
       </Typography>
-      {/* 分頁切換按鈕 */}
-      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 3 }}>
-        <Button
-          variant={page === 'products' ? 'contained' : 'outlined'}
-          onClick={() => setPage('products')}
-        >
-          產品管理
-        </Button>
-        <Button
-          variant={page === 'sales' ? 'contained' : 'outlined'}
-          onClick={() => setPage('sales')}
-        >
-          銷售紀錄
-        </Button>
-        <Button
-          variant={page === 'inventory' ? 'contained' : 'outlined'}
-          onClick={() => setPage('inventory')}
-        >
-          庫存管理
-        </Button>
-        <Button
-          variant={page === 'catalog' ? 'contained' : 'outlined'}
-          onClick={() => setPage('catalog')}
-        >
-          寶可夢球型錄
-        </Button>
-      </Box>
-      {/* 型錄分頁 */}
+      {/* 只在管理者頁面顯示分頁切換按鈕 */}
+      {page !== 'catalog' && window.location.pathname !== '/catalog' && (
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 3 }}>
+          <Button
+            variant={page === 'products' ? 'contained' : 'outlined'}
+            onClick={() => setPage('products')}
+          >
+            產品管理
+          </Button>
+          <Button
+            variant={page === 'sales' ? 'contained' : 'outlined'}
+            onClick={() => setPage('sales')}
+          >
+            銷售紀錄
+          </Button>
+          <Button
+            variant={page === 'inventory' ? 'contained' : 'outlined'}
+            onClick={() => setPage('inventory')}
+          >
+            庫存管理
+          </Button>
+          <Button
+            variant={page === 'catalog' ? 'contained' : 'outlined'}
+            onClick={() => setPage('catalog')}
+          >
+            寶可夢球型錄
+          </Button>
+        </Box>
+      )}
+      {/* 型錄分頁（顧客專用，只顯示型錄購買功能） */}
       {page === 'catalog' && (
         <ProductCatalog products={products} onPurchase={handlePurchase} />
       )}
 
-      {/* 產品管理頁 */}
-      {page === 'products' && (
+      {/* 管理者專用分頁（僅管理者可見） */}
+      {!window.location.pathname.startsWith('/catalog') && (
         <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => setEditingProduct({})}
-            >
-              新增產品
-            </Button>
-            <ImportCSV onSuccess={handleImportSuccess} />
-          </Box>
-          <Paper sx={{ p: 2, mb: 2 }}>
-            <ProductList
-              products={products}
-              onEdit={setEditingProduct}
-              onDelete={handleDelete}
-            />
-          </Paper>
-          {editingProduct !== null && (
-            <ProductForm
-              product={editingProduct}
-              onSave={handleSave}
-              onCancel={() => setEditingProduct(null)}
-            />
+          {/* 產品管理頁 */}
+          {page === 'products' && (
+            <>
+              <Box
+                sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setEditingProduct({})}
+                >
+                  新增產品
+                </Button>
+                <ImportCSV onSuccess={handleImportSuccess} />
+              </Box>
+              <Paper sx={{ p: 2, mb: 2 }}>
+                <ProductList
+                  products={products}
+                  onEdit={setEditingProduct}
+                  onDelete={handleDelete}
+                />
+              </Paper>
+              {editingProduct !== null && (
+                <ProductForm
+                  product={editingProduct}
+                  onSave={handleSave}
+                  onCancel={() => setEditingProduct(null)}
+                />
+              )}
+            </>
           )}
-        </>
-      )}
 
-      {/* 銷售紀錄分頁 CRUD */}
-      {page === 'sales' && (
-        <>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <Button variant="contained" onClick={() => setEditingSale({})}>
-              新增銷售紀錄
-            </Button>
-          </Box>
-          <Paper sx={{ p: 2, mb: 2 }}>
-            <SalesList
-              sales={sales}
-              onEdit={setEditingSale}
-              onDelete={handleDeleteSale}
-            />
-          </Paper>
-          {editingSale !== null && (
-            <SalesForm
-              sale={editingSale}
-              products={products}
-              onSave={handleSaveSale}
-              onCancel={() => setEditingSale(null)}
-            />
+          {/* 銷售紀錄分頁 CRUD */}
+          {page === 'sales' && (
+            <>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                <Button variant="contained" onClick={() => setEditingSale({})}>
+                  新增銷售紀錄
+                </Button>
+              </Box>
+              <Paper sx={{ p: 2, mb: 2 }}>
+                <SalesList
+                  sales={sales}
+                  onEdit={setEditingSale}
+                  onDelete={handleDeleteSale}
+                />
+              </Paper>
+              {editingSale !== null && (
+                <SalesForm
+                  sale={editingSale}
+                  products={products}
+                  onSave={handleSaveSale}
+                  onCancel={() => setEditingSale(null)}
+                />
+              )}
+            </>
           )}
-        </>
-      )}
 
-      {/* 庫存管理分頁 CRUD */}
-      {page === 'inventory' && (
-        <>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <Button variant="contained" onClick={() => setEditingInventory({})}>
-              新增庫存
-            </Button>
-          </Box>
-          <Paper sx={{ p: 2, mb: 2 }}>
-            <InventoryList
-              inventory={inventory}
-              onEdit={setEditingInventory}
-              onDelete={handleDeleteInventory}
-            />
-          </Paper>
-          {editingInventory !== null && (
-            <InventoryForm
-              item={editingInventory}
-              products={products}
-              onSave={handleSaveInventory}
-              onCancel={() => setEditingInventory(null)}
-            />
+          {/* 庫存管理分頁 CRUD */}
+          {page === 'inventory' && (
+            <>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                <Button
+                  variant="contained"
+                  onClick={() => setEditingInventory({})}
+                >
+                  新增庫存
+                </Button>
+              </Box>
+              <Paper sx={{ p: 2, mb: 2 }}>
+                <InventoryList
+                  inventory={inventory}
+                  onEdit={setEditingInventory}
+                  onDelete={handleDeleteInventory}
+                />
+              </Paper>
+              {editingInventory !== null && (
+                <InventoryForm
+                  item={editingInventory}
+                  products={products}
+                  onSave={handleSaveInventory}
+                  onCancel={() => setEditingInventory(null)}
+                />
+              )}
+            </>
           )}
         </>
       )}
