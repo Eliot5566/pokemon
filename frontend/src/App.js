@@ -271,9 +271,12 @@ function App() {
 
   return (
     <Container maxWidth={false} sx={{ py: 4, maxWidth: 1300, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom align="center">
-        寶可夢 3D 列印球產品管理
-      </Typography>
+      {/* 管理者頁面才顯示標題 */}
+      {page !== 'catalog' && window.location.pathname !== '/catalog' && (
+        <Typography variant="h4" gutterBottom align="center">
+          寶可夢 3D 列印球產品管理
+        </Typography>
+      )}
       {/* 只在管理者頁面顯示分頁切換按鈕 */}
       {page !== 'catalog' && window.location.pathname !== '/catalog' && (
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 3 }}>
@@ -304,7 +307,7 @@ function App() {
         </Box>
       )}
       {/* 型錄分頁（顧客專用，只顯示型錄購買功能） */}
-      {page === 'catalog' && (
+      {(page === 'catalog' || window.location.pathname === '/catalog') && (
         <ProductCatalog products={products} onPurchase={handlePurchase} />
       )}
 

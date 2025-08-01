@@ -85,10 +85,7 @@ function ProductCatalog({ products, onPurchase }) {
       );
       if (res.ok) {
         setSuccess(true);
-        setCart([]);
-        setCheckout(false);
-        setShowCart(false);
-        setCustomer({ name: '', phone: '', email: '' });
+        // 保留購物車與消費者資訊，顯示訂單明細
       }
     } catch {
       alert('送出失敗，請稍後再試');
@@ -405,12 +402,56 @@ function ProductCatalog({ products, onPurchase }) {
             borderRadius: 2,
             background: '#e8f5e9',
             textAlign: 'center',
+            maxWidth: 500,
+            mx: 'auto',
           }}
         >
           <Typography variant="h5" color="success.main" gutterBottom>
             購買成功！
           </Typography>
-          <Typography sx={{ mb: 2 }}>感謝您的購買，我們已收到訂單。</Typography>
+          <Typography sx={{ mb: 2 }}>
+            感謝您的購買，我們已收到訂單。
+            <br />
+            訂單狀態：<b style={{ color: '#1976d2' }}>待出貨</b>
+          </Typography>
+          <Box
+            sx={{
+              mb: 2,
+              textAlign: 'left',
+              background: '#fff',
+              p: 2,
+              borderRadius: 2,
+              boxShadow: 1,
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              訂單明細
+            </Typography>
+            <Typography sx={{ fontSize: 15, mb: 1 }}>
+              姓名：{customer.name}
+              <br />
+              電話：{customer.phone}
+              <br />
+              Email：{customer.email}
+            </Typography>
+            {cart.map((item) => (
+              <Box
+                key={item.product_id}
+                sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+              >
+                <Typography sx={{ flex: 1 }}>
+                  {item.name_zh} x {item.quantity}
+                </Typography>
+                <Typography sx={{ width: 80 }}>
+                  NT$ {item.price * item.quantity}
+                </Typography>
+              </Box>
+            ))}
+            <Typography sx={{ textAlign: 'right', fontWeight: 'bold', mt: 1 }}>
+              總計：NT${' '}
+              {cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             color="primary"
@@ -418,6 +459,8 @@ function ProductCatalog({ products, onPurchase }) {
               setSuccess(false);
               setCheckout(false);
               setShowCart(false);
+              setCart([]);
+              setCustomer({ name: '', phone: '', email: '' });
             }}
           >
             返回型錄
